@@ -1,3 +1,4 @@
 exception IntOverflow
-exception Int32Overflow
-exception Int64Overflow
+exception FLine
+exception SLine
+exception TLine

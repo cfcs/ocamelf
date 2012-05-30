@@ -1,5 +1,23 @@
 type bitstring = Bitstring.bitstring
 
+module type INT_t = sig
+     type t
+     val add : t -> t -> t
+     val format : string -> t -> string
+     val logand : t -> t -> t
+     val logxor : t -> t -> t
+     val sub : t -> t -> t
+     val mul : t -> t -> t
+     val min_int : t
+     val div : t -> t -> t
+     val to_int : t -> int
+     val to_string : t -> string
+     val of_int : int -> t
+     val zero : t
+     val shift_left : t -> int -> t
+     val shift_right : t -> int -> t
+end
+
 let mk_rw l =
   (
     (fun x -> snd (List.find (fun (k, _) -> k = x) l)),
@@ -100,13 +118,6 @@ let string_of_bitstring bs =
         (if bit then "1" else "0") ^ (string_of_bitset_aux rest)
     | { _ } -> ""
   in string_of_bitset_aux bs
-
-(* To print addresses/offsets *)
-let string_of_int32_x = Printf.sprintf "0x%08lx"
-let string_of_int64_x = Printf.sprintf "0x%08Lx"
-(* To print counts/indices *)
-let string_of_int32_d = Int32.to_string
-let string_of_int64_d = Int64.to_string
 
 let sorted_lookup (compare: 'a -> 'b -> int) (arr: 'a array) (v: 'b): 'a option =
   let rec sorted_lookup_aux (i_from: int) (i_to: int): 'a option =
