@@ -56,8 +56,7 @@ type p_type =
 
 module Make
 (INT : INT_t)
-(B : sig val size : int end)
-(Ehdr : module type of ELF_Ehdr.Make(INT)(B))
+(Ehdr : module type of ELF_Ehdr.Make(INT))
 : sig
     type elf_phdr =
         { p_type   : p_type
@@ -70,6 +69,7 @@ module Make
         ; p_align  : INT.t
         }
   val read : Ehdr.elf_ehdr -> Bitstring.bitstring -> elf_phdr array
+  val to_string : elf_phdr -> string
 end
 = struct
     type elf_phdr =
@@ -83,25 +83,25 @@ end
         ; p_align  : INT.t
         }
 
-    module Ehdr = ELF_Ehdr.Make(INT)(B)
-    module SafeX = Safe.Make(INT)(B)
+    module Ehdr = ELF_Ehdr.Make(INT)
+    module SafeX = Safe.Make(INT)
 
     let read (ehdr: Ehdr.elf_ehdr) (bs: bitstring) =
-      let endian = ehdr.endian in
+      let endian = ehdr.Ehdr.endian in
         let read_nth (n: int) =
-        let sz = n * ehdr.e_phentsize in
+        let sz = n * ehdr.Ehdr.e_phentsize in
         let phdr_bit_ofs = SafeX.(
-          (of_int 8) * (ehdr.e_phoff + (of_int sz))
+          (of_int 8) * (ehdr.Ehdr.e_phoff + (of_int sz))
         |> to_int ) in
         bitmatch Bitstring.dropbits phdr_bit_ofs bs with
           { p_type   : 32 : endian(endian), bind(read_p_type p_type)
           ; p_flags  : 32 : bitstring
-          ; p_offset : B.size : bitstring, bind(SafeX.(read_word p_offset)|>fst)
-          ; p_vaddr  : B.size : bitstring, bind(SafeX.(read_word p_vaddr)|>fst)
-          ; p_paddr  : B.size : bitstring, bind(SafeX.(read_word p_paddr)|>fst)
-          ; p_filesz : B.size : bitstring, bind(SafeX.(read_word p_filesz)|>fst)
-          ; p_memsz  : B.size : bitstring, bind(SafeX.(read_word p_memsz)|>fst)
-          ; p_align  : B.size : bitstring, bind(SafeX.(read_word p_align)|>fst)
+          ; p_offset : INT.wordsize : bitstring, bind(SafeX.(read_word p_offset)|>fst)
+          ; p_vaddr  : INT.wordsize : bitstring, bind(SafeX.(read_word p_vaddr)|>fst)
+          ; p_paddr  : INT.wordsize : bitstring, bind(SafeX.(read_word p_paddr)|>fst)
+          ; p_filesz : INT.wordsize : bitstring, bind(SafeX.(read_word p_filesz)|>fst)
+          ; p_memsz  : INT.wordsize : bitstring, bind(SafeX.(read_word p_memsz)|>fst)
+          ; p_align  : INT.wordsize : bitstring, bind(SafeX.(read_word p_align)|>fst)
           } ->
             { p_type
             ; p_offset
@@ -113,7 +113,7 @@ end
             ; p_align
             }
       in
-      Array.init ehdr.e_phnum read_nth
+      Array.init ehdr.Ehdr.e_phnum read_nth
 
     let to_string ph =
       Printf.sprintf

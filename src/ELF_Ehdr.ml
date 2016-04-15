@@ -104,7 +104,6 @@ let string_of_et = function
 
 module Make
 (INT : INT_t )
-(B : sig val size : int end)
 : sig
     type elf_ehdr =
         { e_ident     : elf_identification
@@ -148,7 +147,7 @@ end
         ; endian      : Bitstring.endian
         }
 
-    module SafeX = Safe.Make (INT) (B)
+    module SafeX = Safe.Make (INT)
 
     open ELF_Identification
 
@@ -158,9 +157,9 @@ end
         { e_type      : 16 : int, endian(endian), bind (read_et e_type)
         ; e_machine   : 16 : int, endian(endian), bind (read_em e_machine)
 	; e_version   : 32 : int, endian(endian), bind (read_ev e_version)
-        ; e_entry     : B.size : bitstring, bind (SafeX.read_word e_entry |> fst)
-	; e_phoff     : B.size : bitstring, bind (SafeX.read_word e_phoff |> fst)
-        ; e_shoff     : B.size : bitstring, bind (SafeX.read_word e_shoff |> fst)
+        ; e_entry     : INT.wordsize : bitstring, bind (SafeX.read_word e_entry |> fst)
+	; e_phoff     : INT.wordsize : bitstring, bind (SafeX.read_word e_phoff |> fst)
+        ; e_shoff     : INT.wordsize : bitstring, bind (SafeX.read_word e_shoff |> fst)
         ; e_flags     : 32 : bitstring
         ; e_ehsize    : 16 : int, endian(endian)
         ; e_phentsize : 16 : int, endian(endian)
