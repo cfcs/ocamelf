@@ -42,11 +42,14 @@ let (read_st_bind, write_st_bind) =
   )
 
 type st_type = (* symbol table entry type constants *)
-| STT_NOTYPE
-| STT_OBJECT
+| STT_NOTYPE  (* type not specified *)
+| STT_OBJECT  (* data object (variable, array, etc) *)
 | STT_FUNC    (* function*)
-| STT_SECTION
-| STT_FILE
+| STT_SECTION (* symbol refers to a section *)
+| STT_FILE    (* local, absolute symbol that refers to a file *)
+| STT_COMMON  (* an uninitialized common block *)
+| STT_TLS     (* thread local storage object *)
+| STT_GNU_IFUNC (* GNU indirect function - see http://willnewton.name/uncategorized/using-gnu-indirect-functions/ - also used for STT_AMDGPU_HSA_KERNEL *)
 | STT_OS      of int
 | STT_PROC    of int
 | STT_OTHER   of int
@@ -57,6 +60,9 @@ let string_of_st_type = function
 | STT_FUNC     -> "STT_FUNC"
 | STT_SECTION  -> "STT_SECTION"
 | STT_FILE     -> "STT_FILE"
+| STT_COMMON   -> "STT_COMMON"
+| STT_TLS      -> "STT_TLS"
+| STT_GNU_IFUNC -> "STT_GNU_IFUNC"
 | STT_OS(x)    -> "STT_OS("    ^ string_of_int x ^ ")"
 | STT_PROC(x)  -> "STT_PROC("  ^ string_of_int x ^ ")"
 | STT_OTHER(x) -> "STT_OTHER(" ^ string_of_int x ^ ")"
@@ -68,9 +74,12 @@ let (read_st_type, write_st_type) =
    ; (2, STT_FUNC   )
    ; (3, STT_SECTION)
    ; (4, STT_FILE   )
-   ]
- in
- (
+   ; (5, STT_COMMON ) 
+   ; (6, STT_TLS    )
+   ; (10, STT_GNU_IFUNC )
+    ]
+  in
+  (
    (fun x ->
      if 10 <= x && x <= 12
      then STT_OS(x)
